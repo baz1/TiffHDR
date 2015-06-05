@@ -14,8 +14,10 @@ TEMPLATE = app
 LIBS += -ltiff
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    display.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    display.h
 
 FORMS    += mainwindow.ui
