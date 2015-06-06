@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <tiffio.h>
 
+bool LoadDialog::debug;
+
 LoadDialog::LoadDialog(QWidget *parent) : QDialog(parent), ui(new Ui::LoadDialog), isAccepted(false)
 {
     ui->setupUi(this);
@@ -62,6 +64,7 @@ void LoadDialog::addFile(QString filename)
         TIFFGetField(tiffFile, TIFFTAG_IMAGEWIDTH, &photo.width);
         TIFFGetField(tiffFile, TIFFTAG_IMAGELENGTH, &photo.height);
         TIFFGetField(tiffFile, TIFFTAG_SAMPLESPERPIXEL, &nsamples);
+        photo.dirIndex = dir;
         descriptions.append(tr("Dir. %1: %2x%3 image with %4 bits per sample and %5 samples")
                             .arg(dir).arg(photo.width).arg(photo.height).arg(bps).arg(nsamples));
         photos.append(photo);
@@ -78,16 +81,25 @@ void LoadDialog::addFile(QString filename)
     if (photos.length() == 1)
     {
         files.append(photos.first());
-        // TODO update GUI
+        //: Formatting for the list of TIFF files to load; %1 is the filename while %2 is the directory number
+        ui->tiffList->addItem(tr("%1 (dir. %2)").arg(filename).arg(photos.first().dirIndex));
+        if (files.length() >= 2)
+            ui->validate->setEnabled(true);
+        ui->removeTIFF->setEnabled(true);
         return;
     }
     bool ok;
-    int index = QInputDialog::getItem(this, tr("Directory selection"), tr("Please select the directory that corresponds to your photo:"),
-                                      descriptions, 0, false, &ok);
+    QString chosen = QInputDialog::getItem(this, tr("Directory selection"), tr("Please select the directory that corresponds to your photo:"),
+                                           descriptions, 0, false, &ok);
     if (!ok)
         return;
+    int index = descriptions.indexOf(chosen);
     files.append(photos.at(index));
-    // TODO update GUI
+    //: Formatting for the list of TIFF files to load; %1 is the filename while %2 is the directory number
+    ui->tiffList->addItem(tr("%1 (dir. %2)").arg(filename).arg(photos.at(index).dirIndex));
+    if (files.length() >= 2)
+        ui->validate->setEnabled(true);
+    ui->removeTIFF->setEnabled(true);
 }
 
 void LoadDialog::setDebugMode(bool isEnabled)
