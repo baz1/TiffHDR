@@ -4,8 +4,9 @@
 #include <QMainWindow>
 #include <QStringList>
 
-namespace Ui {
-class MainWindow;
+namespace Ui
+{
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow

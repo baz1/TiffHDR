@@ -15,9 +15,14 @@ LIBS += -ltiff
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    display.cpp
+    display.cpp \
+    data.cpp \
+    loaddialog.cpp
 
 HEADERS  += mainwindow.h \
-    display.h
+    display.h \
+    data.h \
+    loaddialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    loaddialog.ui
