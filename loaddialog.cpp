@@ -21,7 +21,24 @@ LoadDialog::~LoadDialog()
     delete ui;
 }
 
-void LoadDialog::addFile(QString filename)
+void LoadDialog::setDebugMode(bool isEnabled)
+{
+    debug = isEnabled;
+}
+
+QList<TIFF_File> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startList)
+{
+    LoadDialog dlg(parent);
+    dlg.show();
+    foreach (const QString &filename, startList)
+        dlg.addFile(filename);
+    dlg.exec();
+    if (!dlg.isAccepted)
+        dlg.files.clear();
+    return dlg.files;
+}
+
+void LoadDialog::addFile(const QString filename)
 {
     TIFF *tiffFile = TIFFOpen(qPrintable(filename), "r");
     if (!tiffFile)
@@ -101,27 +118,10 @@ void LoadDialog::addFile(QString filename)
     ui->removeTIFF->setEnabled(true);
 }
 
-void LoadDialog::setDebugMode(bool isEnabled)
-{
-    debug = isEnabled;
-}
-
-QList<TIFF_File> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startList)
-{
-    LoadDialog dlg(parent);
-    dlg.show();
-    foreach (QString filename, startList)
-        dlg.addFile(filename);
-    dlg.exec();
-    if (!dlg.isAccepted)
-        dlg.files.clear();
-    return dlg.files;
-}
-
 void LoadDialog::on_addTIFF_pressed()
 {
     QStringList filenames = QFileDialog::getOpenFileNames(this, tr("Select your TIFF photos"), QString(), tr("TIFF images (*.tif *.tiff)"));
-    foreach (QString filename, filenames)
+    foreach (const QString &filename, filenames)
         addFile(filename);
 }
 
