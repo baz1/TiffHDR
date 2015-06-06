@@ -2,6 +2,7 @@
 #define LOADDIALOG_H
 
 #include <QDialog>
+#include <QStringList>
 
 #include "data.h"
 
@@ -16,11 +17,17 @@ class LoadDialog : public QDialog
 public:
     explicit LoadDialog(QWidget *parent = 0);
     ~LoadDialog();
+    void addFile(QString filename);
+public:
+    static QList<TIFF_File> loadTiffFiles(QWidget *parent = 0, QStringList startList = QStringList());
 private slots:
-    void on_validation_rejected();
+    void on_addTIFF_pressed();
+    void on_validate_pressed();
+    void on_cancel_pressed();
 private:
     Ui::LoadDialog *ui;
     QList<TIFF_File> files;
+    bool isAccepted;
 };
 
 #endif // LOADDIALOG_H

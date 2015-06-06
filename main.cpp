@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
     }
     MainWindow w(debug);
     w.show();
-    w.startTIFFLoading(args);
+    if (!args.isEmpty())
+        w.startTIFFLoading(args);
     return a.exec();
 }
