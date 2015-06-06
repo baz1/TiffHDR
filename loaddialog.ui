@@ -51,6 +51,38 @@
          </property>
         </spacer>
        </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Display precision</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="ratioLabel">
+            <property name="text">
+             <string>Ratio: 1/10</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="ratioSlider">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>99</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>

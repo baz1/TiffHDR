@@ -29,7 +29,6 @@ void LoadDialog::addFile(QString filename)
         QMessageBox::warning(this, tr("Error:"), tr("Unable to load TIFF file %1.").arg(filename));
         return;
     }
-    /* Checking the number of directories */
     QStringList descriptions;
     QList<TIFF_File> photos;
     int dir = 0;
@@ -136,4 +135,9 @@ void LoadDialog::on_validate_pressed()
 void LoadDialog::on_cancel_pressed()
 {
     close();
+}
+
+void LoadDialog::on_ratioSlider_valueChanged(int value)
+{
+    ui->ratioLabel->setText(tr("Ratio: 1/%1").arg(value));
 }

@@ -25,6 +25,8 @@ private slots:
     void on_addTIFF_pressed();
     void on_validate_pressed();
     void on_cancel_pressed();
+    void on_ratioSlider_valueChanged(int value);
+
 private:
     static bool debug;
     Ui::LoadDialog *ui;
