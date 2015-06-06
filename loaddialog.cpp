@@ -20,6 +20,11 @@ void LoadDialog::addFile(QString filename)
     Q_UNUSED(filename) // TODO
 }
 
+void LoadDialog::setDebugMode(bool isEnabled)
+{
+    debug = isEnabled;
+}
+
 QList<TIFF_File> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startList)
 {
     LoadDialog dlg(parent);

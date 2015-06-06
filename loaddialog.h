@@ -19,12 +19,14 @@ public:
     ~LoadDialog();
     void addFile(QString filename);
 public:
+    static void setDebugMode(bool isEnabled);
     static QList<TIFF_File> loadTiffFiles(QWidget *parent = 0, QStringList startList = QStringList());
 private slots:
     void on_addTIFF_pressed();
     void on_validate_pressed();
     void on_cancel_pressed();
 private:
+    static bool debug;
     Ui::LoadDialog *ui;
     QList<TIFF_File> files;
     bool isAccepted;

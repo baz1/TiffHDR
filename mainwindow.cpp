@@ -6,6 +6,7 @@
 MainWindow::MainWindow(bool debug, QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow), debug(debug)
 {
     ui->setupUi(this);
+    LoadDialog::setDebugMode(debug);
 }
 
 MainWindow::~MainWindow()
