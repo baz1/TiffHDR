@@ -4,11 +4,15 @@
 #include <QObject>
 #include <QList>
 #include <QString>
+#include <QPixmap>
 
 struct TIFF_File
 {
     QString filename;
     int dirIndex;
+    quint32 width, height;
+    QPixmap display;
+    double ev_coeff;
 };
 
 class Data : public QObject
