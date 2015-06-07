@@ -1,6 +1,9 @@
 #include "loaddialog.h"
 #include "ui_loaddialog.h"
 
+#include "loadingdialog.h"
+#include "reducer.h"
+
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -33,9 +36,28 @@ QList<TIFF_File> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startLis
     foreach (const QString &filename, startList)
         dlg.addFile(filename);
     dlg.exec();
-    if (!dlg.isAccepted)
-        dlg.files.clear();
-    return dlg.files;
+    QList<TIFF_File> result;
+    if (dlg.isAccepted)
+    {
+        result = dlg.files;
+        LoadingDialog ldlg(parent);
+        ldlg.show();
+        Reducer reducer(dlg.ui->ratioSlider->value());
+        connect(&reducer, SIGNAL(renderingStatus(int)), &ldlg, SLOT(setSubStep(int)));
+        int fromP = 0;
+        for (int i = 0; i < result.length(); ++i)
+        {
+            int toP = ((i + 1) * 100) / result.length();
+            ldlg.setStep(tr("Converting TIFF n.%1 for display..."), fromP, toP);
+            reducer.setFilename(result.at(i).filename);
+            reducer.start();
+            reducer.wait();
+            result[i].display = reducer.getPixmap();
+            fromP = toP;
+        }
+        ldlg.close();
+    }
+    return result;
 }
 
 void LoadDialog::addFile(const QString filename)

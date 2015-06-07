@@ -25,6 +25,7 @@ void LoadingDialog::setStep(QString description, int from, int to)
 
 void LoadingDialog::setSubStep(int value)
 {
+    Q_ASSERT((value >= 0) && (value <= 100));
     ui->subPrgss->setValue(value);
     ui->mainPrgss->setValue(currentFrom + ((value * currentMult) / 100));
 }

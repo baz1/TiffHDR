@@ -18,13 +18,15 @@ SOURCES += main.cpp\
     display.cpp \
     data.cpp \
     loaddialog.cpp \
-    loadingdialog.cpp
+    loadingdialog.cpp \
+    reducer.cpp
 
 HEADERS  += mainwindow.h \
     display.h \
     data.h \
     loaddialog.h \
-    loadingdialog.h
+    loadingdialog.h \
+    reducer.h
 
 FORMS    += mainwindow.ui \
     loaddialog.ui \
