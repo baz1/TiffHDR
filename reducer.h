@@ -8,18 +8,26 @@ class Reducer : public QThread
 {
     Q_OBJECT
 public:
-    explicit Reducer(int ratio, QObject *parent = 0);
-    void setFilename(QString filename);
+    explicit Reducer(int ratio, int threadId = 0, QObject *parent = 0);
+    void setTask(int taskId, QString filename, int dirIndex);
+    inline int getTaskId() const;
     inline QPixmap getPixmap() const;
 protected:
     void run();
 signals:
-    void renderingStatus(int value);
+    void renderingStatus(int threadId, int value);
 private:
-    int ratio;
+    int threadId, ratio;
+    int taskId;
     QString filename;
+    int dirIndex;
     QPixmap result;
 };
+
+inline int Reducer::getTaskId() const
+{
+    return taskId;
+}
 
 inline QPixmap Reducer::getPixmap() const
 {

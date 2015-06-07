@@ -31,30 +31,74 @@ void LoadDialog::setDebugMode(bool isEnabled)
 
 QList<TIFF_File> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startList)
 {
-    LoadDialog dlg(parent);
-    dlg.show();
+    LoadDialog *dlg = new LoadDialog(parent);
+    dlg->show();
     foreach (const QString &filename, startList)
-        dlg.addFile(filename);
-    dlg.exec();
-    QList<TIFF_File> result;
-    if (dlg.isAccepted)
+        dlg->addFile(filename);
+    dlg->exec();
+    QList<TIFF_File> result = dlg->files;
+    if (!dlg->isAccepted)
+        result.clear();
+    int ratioValue = dlg->ui->ratioSlider->value();
+    delete dlg;
+    if (!result.isEmpty())
     {
-        result = dlg.files;
-        LoadingDialog ldlg(parent);
+        /* Getting number of threads */
+        int nThreads = QThread::idealThreadCount(); // TODO: in settings
+        if (debug)
+            fprintf(stderr, "Debug: Trying to render display pixmaps with %d (>= 1) threads.\n", nThreads);
+        if (nThreads < 1)
+            nThreads = 1;
+        /* Initialization */
+        LoadingDialog ldlg(parent, nThreads);
         ldlg.show();
-        Reducer reducer(dlg.ui->ratioSlider->value());
-        connect(&reducer, SIGNAL(renderingStatus(int)), &ldlg, SLOT(setSubStep(int)));
+        Reducer **reducers = new Reducer*[nThreads];
+        QEventLoop pause;
+        for (int j = nThreads; --j >= 0;)
+        {
+            reducers[j] = new Reducer(ratioValue, j);
+            connect(reducers[j], SIGNAL(renderingStatus(int,int)), &ldlg, SLOT(setSubStep(int,int)));
+            connect(reducers[j], SIGNAL(finished()), &pause, SLOT(quit()));
+        }
         int fromP = 0;
+        /* Multithreaded rendering of the pixmaps */
         for (int i = 0; i < result.length(); ++i)
         {
             int toP = ((i + 1) * 100) / result.length();
-            ldlg.setStep(tr("Converting TIFF n.%1 for display..."), fromP, toP);
-            reducer.setFilename(result.at(i).filename);
-            reducer.start();
-            reducer.wait();
-            result[i].display = reducer.getPixmap();
+            /* Getting a free thread */
+            int j = nThreads;
+            while (true)
+            {
+                if (!reducers[--j]->isRunning())
+                    break;
+                if (j <= 0)
+                {
+                    pause.exec();
+                    j = nThreads;
+                }
+            }
+            /* Saving the result of thread j if there is one */
+            if (reducers[j]->getTaskId() >= 0)
+                result[reducers[j]->getTaskId()].display = reducers[j]->getPixmap();
+            /* Rendering file i on thread j */
+            ldlg.newStep(j, tr("Converting TIFF n.%1 for display...").arg(i), toP - fromP);
             fromP = toP;
+            reducers[j]->setTask(i, result.at(i).filename, result.at(i).dirIndex);
+            reducers[j]->start();
         }
+        /* Waiting for all threads to finish */
+        for (int j = nThreads; --j >= 0;)
+        {
+            while (reducers[j]->isRunning())
+                pause.exec();
+            /* Saving the result of thread j if there is one (we may overwrite which is not a big deal) */
+            if (reducers[j]->getTaskId() >= 0)
+                result[reducers[j]->getTaskId()].display = reducers[j]->getPixmap();
+        }
+        /* Deleting all the remaining objects */
+        for (int j = nThreads; --j >= 0;)
+            delete reducers[j];
+        delete[] reducers;
         ldlg.close();
     }
     return result;
