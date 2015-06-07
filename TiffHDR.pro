@@ -14,20 +14,20 @@ TEMPLATE = app
 LIBS += -ltiff
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    display.cpp \
-    data.cpp \
-    loaddialog.cpp \
-    loadingdialog.cpp \
-    reducer.cpp
+    gui/mainwindow.cpp \
+    gui/display.cpp \
+    rendering/data.cpp \
+    gui/loaddialog.cpp \
+    util/loadingdialog.cpp \
+    rendering/reducer.cpp
 
-HEADERS  += mainwindow.h \
-    display.h \
-    data.h \
-    loaddialog.h \
-    loadingdialog.h \
-    reducer.h
+HEADERS  += gui/mainwindow.h \
+    gui/display.h \
+    rendering/data.h \
+    gui/loaddialog.h \
+    util/loadingdialog.h \
+    rendering/reducer.h
 
-FORMS    += mainwindow.ui \
-    loaddialog.ui \
-    loadingdialog.ui
+FORMS    += gui/mainwindow.ui \
+    gui/loaddialog.ui \
+    util/loadingdialog.ui
