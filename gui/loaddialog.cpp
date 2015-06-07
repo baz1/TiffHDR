@@ -1,8 +1,8 @@
 #include "loaddialog.h"
 #include "ui_loaddialog.h"
 
-#include "loadingdialog.h"
-#include "reducer.h"
+#include "../util/loadingdialog.h"
+#include "../rendering/reducer.h"
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -81,7 +81,8 @@ QList<TIFF_File> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startLis
             if (reducers[j]->getTaskId() >= 0)
                 result[reducers[j]->getTaskId()].display = reducers[j]->getPixmap();
             /* Rendering file i on thread j */
-            ldlg.newStep(j, tr("Converting TIFF n.%1 for display...").arg(i), toP - fromP);
+            //: Small caption for the processing of the TIFF file number %1 for display inside the application
+            ldlg.newStep(j, tr("TIFF n.%1...").arg(i), toP - fromP);
             fromP = toP;
             reducers[j]->setTask(i, result.at(i).filename, result.at(i).dirIndex);
             reducers[j]->start();

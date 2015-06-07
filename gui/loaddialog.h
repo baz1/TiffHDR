@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QStringList>
 
-#include "data.h"
+#include "../rendering/data.h"
 
 namespace Ui
 {

@@ -57,7 +57,6 @@ void LoadingDialog::newStep(QString description, int mainValue)
     currentMult[0] = mainValue;
     subPrgss[0]->setValue(0);
     labels[0]->setText(description);
-    update();
 }
 
 void LoadingDialog::newStep(int threadId, QString description, int mainValue)
@@ -76,7 +75,6 @@ void LoadingDialog::newStep(int threadId, QString description, int mainValue)
     currentMult[threadId] = mainValue;
     subPrgss[threadId]->setValue(0);
     labels[threadId]->setText(description);
-    update();
 }
 
 void LoadingDialog::setSubStep(int value)
@@ -89,7 +87,6 @@ void LoadingDialog::setSubStep(int value)
     subPrgss[0]->setValue(value);
     currentPos += currentMult[0] * add;
     ui->mainPrgss->setValue(currentPos / 100);
-    update();
 }
 
 void LoadingDialog::setSubStep(int threadId, int value)
@@ -102,5 +99,4 @@ void LoadingDialog::setSubStep(int threadId, int value)
     subPrgss[threadId]->setValue(value);
     currentPos += currentMult[threadId] * add;
     ui->mainPrgss->setValue(currentPos / 100);
-    update();
 }
