@@ -132,7 +132,7 @@ void LoadDialog::addFile(const QString filename)
         }
         uint16 bps;
         TIFFGetField(tiffFile, TIFFTAG_BITSPERSAMPLE, &bps);
-        if ((bps != 8) && (bps != 16) && (bps != 32))
+        if ((bps != 8) && (bps != 16))
         {
             if (debug)
             {
@@ -148,6 +148,7 @@ void LoadDialog::addFile(const QString filename)
         TIFFGetField(tiffFile, TIFFTAG_IMAGELENGTH, &photo.height);
         TIFFGetField(tiffFile, TIFFTAG_SAMPLESPERPIXEL, &nsamples);
         photo.dirIndex = dir;
+        photo.filename = filename;
         descriptions.append(tr("Dir. %1: %2x%3 image with %4 bits per sample and %5 samples")
                             .arg(dir).arg(photo.width).arg(photo.height).arg(bps).arg(nsamples));
         photos.append(photo);
