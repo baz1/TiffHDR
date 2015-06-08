@@ -3,7 +3,6 @@
 #include <QPainter>
 
 #include <stdio.h>
-#include <tiffio.h>
 #include <string.h>
 
 Reducer::Reducer(int ratio, int threadId, QObject *parent) : QThread(parent), threadId(threadId), ratio(ratio), taskId(-1)
@@ -64,7 +63,6 @@ void Reducer::loadTIFF()
         return;
     }
     uint32 w, h;
-    uint16 config, nsamples, orientation, bps;
     TIFFGetField(tiffFile, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tiffFile, TIFFTAG_IMAGELENGTH, &h);
     unsigned int PW = w / ratio, PH = h / ratio;
@@ -74,27 +72,7 @@ void Reducer::loadTIFF()
         TIFFClose(tiffFile);
         return;
     }
-    TIFFGetField(tiffFile, TIFFTAG_BITSPERSAMPLE, &bps);
-    if ((bps != 8) && (bps != 16))
-    {
-        fprintf(stderr, "Error: Unsupported number of bits per sample (%hu) in file \"%s\".\n", bps, qPrintable(filename));
-        TIFFClose(tiffFile);
-        return;
-    }
-    TIFFGetField(tiffFile, TIFFTAG_PLANARCONFIG, &config);
-    if ((config != PLANARCONFIG_CONTIG) && (config != PLANARCONFIG_SEPARATE))
-    {
-        fprintf(stderr, "Error: Unknown planar configuration (%hu) in file \"%s\".\n", config, qPrintable(filename));
-        TIFFClose(tiffFile);
-        return;
-    }
-    TIFFGetField(tiffFile, TIFFTAG_SAMPLESPERPIXEL, &nsamples);
-    if (nsamples < 1)
-    {
-        fprintf(stderr, "Error: No samples in file \"%s\".\n", qPrintable(filename));
-        TIFFClose(tiffFile);
-        return;
-    }
+    uint16 orientation;
     TIFFGetField(tiffFile, TIFFTAG_ORIENTATION, &orientation);
     if (orientation < 1)
         orientation = 1;
@@ -105,12 +83,42 @@ void Reducer::loadTIFF()
         TIFFClose(tiffFile);
         return;
     }
+    if (!renderTIFF(displayImg, tiffFile, PW, PH))
+    {
+        TIFFClose(tiffFile);
+        return;
+    }
+    TIFFClose(tiffFile);
+    emit renderingStatus(threadId, 100);
+    result = QPixmap::fromImage(displayImg);
+}
+
+bool Reducer::renderTIFF(QImage &img, TIFF *tiffFile, unsigned int PW, unsigned int PH)
+{
+    uint16 bps, config, nsamples;
+    TIFFGetField(tiffFile, TIFFTAG_BITSPERSAMPLE, &bps);
+    if ((bps != 8) && (bps != 16))
+    {
+        fprintf(stderr, "Error: Unsupported number of bits per sample (%hu) in file \"%s\".\n", bps, qPrintable(filename));
+        return false;
+    }
+    TIFFGetField(tiffFile, TIFFTAG_PLANARCONFIG, &config);
+    if ((config != PLANARCONFIG_CONTIG) && (config != PLANARCONFIG_SEPARATE))
+    {
+        fprintf(stderr, "Error: Unknown planar configuration (%hu) in file \"%s\".\n", config, qPrintable(filename));
+        return false;
+    }
+    TIFFGetField(tiffFile, TIFFTAG_SAMPLESPERPIXEL, &nsamples);
+    if (nsamples < 1)
+    {
+        fprintf(stderr, "Error: No samples in file \"%s\".\n", qPrintable(filename));
+        return false;
+    }
     tdata_t buf = _TIFFmalloc(TIFFScanlineSize(tiffFile));
     if (!buf)
     {
         fprintf(stderr, "Error: Not enough memory.\n");
-        TIFFClose(tiffFile);
-        return;
+        return false;
     }
     uint32 lineRAWSize = (nsamples < 3 ? 1 : 3) * PW;
     uint32 *lineRAWData = (ratio <= 1) ? NULL : (new uint32[lineRAWSize]);
@@ -133,14 +141,14 @@ void Reducer::loadTIFF()
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x] >> 8;
-                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                            img.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                         }
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x];
-                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                            img.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                         }
                     }
                 } else {
@@ -152,7 +160,7 @@ void Reducer::loadTIFF()
                             int r = *(buffer++) >> 8;
                             int g = *(buffer++) >> 8;
                             int b = *(buffer++) >> 8;
-                            displayImg.setPixel(x, y, qRgb(r, g, b));
+                            img.setPixel(x, y, qRgb(r, g, b));
                         }
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
@@ -161,7 +169,7 @@ void Reducer::loadTIFF()
                             int r = *(buffer++);
                             int g = *(buffer++);
                             int b = *(buffer++);
-                            displayImg.setPixel(x, y, qRgb(r, g, b));
+                            img.setPixel(x, y, qRgb(r, g, b));
                         }
                     }
                 }
@@ -236,13 +244,13 @@ void Reducer::loadTIFF()
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                    img.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                 }
             } else {
                 linePtr = lineRAWData;
                 uint32 div = (1 << (bps - 8)) * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x, linePtr += 3)
-                    displayImg.setPixel(x, y, qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div));
+                    img.setPixel(x, y, qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div));
             }
         }
     } else {
@@ -261,14 +269,14 @@ void Reducer::loadTIFF()
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x] >> 8;
-                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                            img.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                         }
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x];
-                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                            img.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                         }
                     }
                 } else {
@@ -277,33 +285,33 @@ void Reducer::loadTIFF()
                     {
                         uint16 *buffer = static_cast<uint16*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            displayImg.setPixel(x, y, ((((uint32) buffer[x]) & 0xFF00) << 8) | (0xffLU << 24));
+                            img.setPixel(x, y, ((((uint32) buffer[x]) & 0xFF00) << 8) | (0xffLU << 24));
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            displayImg.setPixel(x, y, (((uint32) buffer[x]) << 16) | (0xffLU << 24));
+                            img.setPixel(x, y, (((uint32) buffer[x]) << 16) | (0xffLU << 24));
                     }
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 1);
                     if (bps == 16)
                     {
                         uint16 *buffer = static_cast<uint16*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & (buffer[x] & 0xFF00));
+                            img.setPixel(x, y, img.pixel(x, y) & (buffer[x] & 0xFF00));
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & (((uint32) buffer[x]) << 8));
+                            img.setPixel(x, y, img.pixel(x, y) & (((uint32) buffer[x]) << 8));
                     }
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 2);
                     if (bps == 16)
                     {
                         uint16 *buffer = static_cast<uint16*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & (buffer[x] >> 8));
+                            img.setPixel(x, y, img.pixel(x, y) & (buffer[x] >> 8));
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & buffer[x]);
+                            img.setPixel(x, y, img.pixel(x, y) & buffer[x]);
                     }
                 }
                 continue;
@@ -339,7 +347,7 @@ void Reducer::loadTIFF()
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                    img.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                 }
             } else {
                 for (unsigned int sy = ratio; sy > 0; --sy)
@@ -371,15 +379,13 @@ void Reducer::loadTIFF()
                 linePtr = lineRAWData;
                 uint32 div = (1 << (bps - 8)) * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x, linePtr += 3)
-                    displayImg.setPixel(x, y, qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div));
+                    img.setPixel(x, y, qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div));
             }
         }
     }
     delete[] lineRAWData;
     _TIFFfree(buf);
-    TIFFClose(tiffFile);
-    emit renderingStatus(threadId, 100);
-    result = QPixmap::fromImage(displayImg);
+    return true;
 }
 
 void Reducer::updateProgress(int &lastP, unsigned int &current, unsigned int &max)

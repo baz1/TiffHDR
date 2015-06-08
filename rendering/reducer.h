@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QPixmap>
+#include <tiffio.h>
 
 class Reducer : public QThread
 {
@@ -18,6 +19,7 @@ signals:
     void renderingStatus(int threadId, int value);
 private:
     void loadTIFF();
+    bool renderTIFF(QImage &img, TIFF *tiffFile, unsigned int PW, unsigned int PH);
     void updateProgress(int &lastP, unsigned int &current, unsigned int &max);
 private:
     int threadId, ratio;
