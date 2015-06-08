@@ -113,7 +113,7 @@ void Reducer::loadTIFF()
         return;
     }
     uint32 lineRAWSize = (nsamples < 3 ? 1 : 3) * PW;
-    uint32 *lineRAWData = new uint32[lineRAWSize];
+    uint32 *lineRAWData = (ratio <= 1) ? NULL : (new uint32[lineRAWSize]);
     lineRAWSize <<= 2;
     int lastP = 0;
     if (config == PLANARCONFIG_CONTIG)
@@ -122,6 +122,51 @@ void Reducer::loadTIFF()
         for (unsigned int y = 0; y < PH; ++y)
         {
             updateProgress(lastP, y, PH);
+            if (ratio <= 1)
+            {
+                TIFFReadScanline(tiffFile, buf, tiff_y++);
+                if (nsamples < 3)
+                {
+                    if (bps == 16)
+                    {
+                        uint16 *buffer = static_cast<uint16*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                        {
+                            uint32 c = buffer[x] >> 8;
+                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                        }
+                    } else {
+                        uint8 *buffer = static_cast<uint8*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                        {
+                            uint32 c = buffer[x];
+                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                        }
+                    }
+                } else {
+                    if (bps == 16)
+                    {
+                        uint16 *buffer = static_cast<uint16*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                        {
+                            int r = *(buffer++) >> 8;
+                            int g = *(buffer++) >> 8;
+                            int b = *(buffer++) >> 8;
+                            displayImg.setPixel(x, y, qRgb(r, g, b));
+                        }
+                    } else {
+                        uint8 *buffer = static_cast<uint8*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                        {
+                            int r = *(buffer++);
+                            int g = *(buffer++);
+                            int b = *(buffer++);
+                            displayImg.setPixel(x, y, qRgb(r, g, b));
+                        }
+                    }
+                }
+                continue;
+            }
             memset(lineRAWData, 0, lineRAWSize);
             uint32 *linePtr;
             for (unsigned int sy = ratio; sy > 0; --sy)
@@ -191,7 +236,7 @@ void Reducer::loadTIFF()
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffu << 24));
+                    displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                 }
             } else {
                 linePtr = lineRAWData;
@@ -201,14 +246,72 @@ void Reducer::loadTIFF()
             }
         }
     } else {
-        if (nsamples < 3)
+        uint32 tiff_y = 0;
+        for (unsigned int y = 0; y < PH; ++y)
         {
-            uint32 tiff_y = 0;
-            for (unsigned int y = 0; y < PH; ++y)
+            updateProgress(lastP, y, PH);
+            if (ratio <= 1)
             {
-                updateProgress(lastP, y, PH);
-                memset(lineRAWData, 0, lineRAWSize);
-                uint32 *linePtr;
+                if (nsamples < 3)
+                {
+                    TIFFReadScanline(tiffFile, buf, tiff_y++, 0);
+                    if (bps == 16)
+                    {
+                        uint16 *buffer = static_cast<uint16*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                        {
+                            uint32 c = buffer[x] >> 8;
+                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                        }
+                    } else {
+                        uint8 *buffer = static_cast<uint8*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                        {
+                            uint32 c = buffer[x];
+                            displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
+                        }
+                    }
+                } else {
+                    TIFFReadScanline(tiffFile, buf, tiff_y++, 0);
+                    if (bps == 16)
+                    {
+                        uint16 *buffer = static_cast<uint16*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                            displayImg.setPixel(x, y, ((((uint32) buffer[x]) & 0xFF00) << 8) | (0xffLU << 24));
+                    } else {
+                        uint8 *buffer = static_cast<uint8*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                            displayImg.setPixel(x, y, (((uint32) buffer[x]) << 16) | (0xffLU << 24));
+                    }
+                    TIFFReadScanline(tiffFile, buf, tiff_y++, 1);
+                    if (bps == 16)
+                    {
+                        uint16 *buffer = static_cast<uint16*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & (buffer[x] & 0xFF00));
+                    } else {
+                        uint8 *buffer = static_cast<uint8*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & (((uint32) buffer[x]) << 8));
+                    }
+                    TIFFReadScanline(tiffFile, buf, tiff_y++, 2);
+                    if (bps == 16)
+                    {
+                        uint16 *buffer = static_cast<uint16*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & (buffer[x] >> 8));
+                    } else {
+                        uint8 *buffer = static_cast<uint8*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
+                            displayImg.setPixel(x, y, displayImg.pixel(x, y) & buffer[x]);
+                    }
+                }
+                continue;
+            }
+            memset(lineRAWData, 0, lineRAWSize);
+            uint32 *linePtr;
+            if (nsamples < 3)
+            {
                 for (unsigned int sy = ratio; sy > 0; --sy)
                 {
                     linePtr = lineRAWData;
@@ -236,16 +339,9 @@ void Reducer::loadTIFF()
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffu << 24));
+                    displayImg.setPixel(x, y, c | (c << 8) | (c << 16) | (0xffLU << 24));
                 }
-            }
-        } else {
-            uint32 tiff_y = 0;
-            for (unsigned int y = 0; y < PH; ++y)
-            {
-                updateProgress(lastP, y, PH);
-                memset(lineRAWData, 0, lineRAWSize);
-                uint32 *linePtr;
+            } else {
                 for (unsigned int sy = ratio; sy > 0; --sy)
                 {
                     for (int sample = 2; sample >= 0; --sample)
