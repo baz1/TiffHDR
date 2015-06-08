@@ -60,7 +60,7 @@
           <item>
            <widget class="QLabel" name="ratioLabel">
             <property name="text">
-             <string>Ratio: 1/10</string>
+             <string>Ratio: 1/1</string>
             </property>
            </widget>
           </item>
@@ -70,10 +70,10 @@
              <number>1</number>
             </property>
             <property name="maximum">
-             <number>99</number>
+             <number>40</number>
             </property>
             <property name="value">
-             <number>10</number>
+             <number>1</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
