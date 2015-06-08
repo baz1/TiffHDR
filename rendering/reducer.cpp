@@ -34,7 +34,7 @@ void Reducer::run()
                 return;
             }
             emit renderingStatus(threadId, 50);
-            QPixmap temp = new QPixmap(PW, PH);
+            QPixmap temp = QPixmap(PW, PH);
             QPainter *painter = new QPainter(&temp);
             painter->drawPixmap(0, 0, PW, PH, result, 0, 0, ratio * PW, ratio * PH);
             /* Note: The last parameters ensure consistency with the TIFF reduction. */

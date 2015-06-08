@@ -105,6 +105,14 @@ QList<PhotoItem> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startLis
     return result;
 }
 
+QString getExtension(QString filename)
+{
+    int index = filename.indexOf(QChar('.'));
+    if (index < 0)
+        return QString();
+    return filename.mid(index + 1).toLower();
+}
+
 void LoadDialog::addFile(const QString filename)
 {
     QString extension = getExtension(filename);
