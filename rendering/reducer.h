@@ -17,6 +17,7 @@ protected:
 signals:
     void renderingStatus(int threadId, int value);
 private:
+    void loadTIFF();
     void updateProgress(int &lastP, unsigned int &current, unsigned int &max);
 private:
     int threadId, ratio;

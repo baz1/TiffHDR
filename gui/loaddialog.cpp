@@ -105,14 +105,6 @@ QList<PhotoItem> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startLis
     return result;
 }
 
-QString getExtension(QString filename)
-{
-    int index = filename.indexOf(QChar('.'));
-    if (index < 0)
-        return QString();
-    return filename.mid(index + 1).toLower();
-}
-
 void LoadDialog::addFile(const QString filename)
 {
     QString extension = getExtension(filename);
@@ -196,14 +188,16 @@ void LoadDialog::addFile(const QString filename)
             ui->validate->setEnabled(true);
         ui->removeTIFF->setEnabled(true);
     } else {
-        if ((extension != "bmp") && (extension != "gif") && (extension != "jpg") && (extension != "jpeg") && (extension != "png"))
-        {
-            QMessageBox::warning(this, tr("Error:"), tr("Unrecognized extension for file \"%1\".").arg(filename));
-            return;
-        }
         PhotoItem photo;
         photo.filename = filename;
-        // TODO get width and height
+        QImage img(filename);
+        if (img.isNull())
+        {
+            QMessageBox::warning(this, tr("Error:"), tr("Unrecognized image: \"%1\".").arg(filename));
+            return;
+        }
+        photo.width = img.width();
+        photo.height = img.height();
         photo.dirIndex = -1;
         files.append(photo);
         //: Formatting for the list of files to load; %1 is the filename
