@@ -44,7 +44,7 @@ LoadingDialog::~LoadingDialog()
 void LoadingDialog::newStep(QString description, int mainValue)
 {
 #ifndef QT_NO_DEBUG
-    Q_ASSERT(threadId == 1);
+    Q_ASSERT(nThreads == 1);
     Q_ASSERT((mainValue >= 0) && (currentTo + mainValue <= 100));
     currentTo += mainValue;
 #endif

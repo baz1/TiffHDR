@@ -19,7 +19,7 @@ signals:
     void renderingStatus(int threadId, int value);
 private:
     void loadTIFF();
-    bool renderTIFF(QImage &img, TIFF *tiffFile, unsigned int PW, unsigned int PH);
+    bool renderTIFF(QRgb *img, TIFF *tiffFile, unsigned int PW, unsigned int PH, unsigned int PRL);
     void updateProgress(int &lastP, unsigned int &current, unsigned int &max);
 private:
     int threadId, ratio;
