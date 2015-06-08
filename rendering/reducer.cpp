@@ -1,5 +1,7 @@
 #include "reducer.h"
 
+#include <QPainter>
+
 #include <stdio.h>
 #include <tiffio.h>
 #include <string.h>
@@ -19,6 +21,34 @@ void Reducer::setTask(int taskId, QString filename, int dirIndex)
 }
 
 void Reducer::run()
+{
+    if (dirIndex < 0)
+    {
+        result = QPixmap(filename);
+        if (ratio > 1)
+        {
+            unsigned int PW = result.width() / ratio, PH = result.height() / ratio;
+            if ((PW == 0) || (PH == 0))
+            {
+                fprintf(stderr, "Error: Picture is too small (\"%s\").\n", qPrintable(filename));
+                return;
+            }
+            emit renderingStatus(threadId, 50);
+            QPixmap temp = new QPixmap(PW, PH);
+            QPainter *painter = new QPainter(&temp);
+            painter->drawPixmap(0, 0, PW, PH, result, 0, 0, ratio * PW, ratio * PH);
+            /* Note: The last parameters ensure consistency with the TIFF reduction. */
+            painter->end();
+            delete painter;
+            result = temp;
+        }
+        emit renderingStatus(threadId, 100);
+    } else {
+        loadTIFF();
+    }
+}
+
+void Reducer::loadTIFF()
 {
     result = QPixmap();
     TIFF *tiffFile = TIFFOpen(qPrintable(filename), "r");
@@ -252,6 +282,7 @@ void Reducer::run()
     delete[] lineRAWData;
     _TIFFfree(buf);
     TIFFClose(tiffFile);
+    emit renderingStatus(threadId, 100);
     result = QPixmap::fromImage(displayImg);
 }
 

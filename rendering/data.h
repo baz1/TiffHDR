@@ -6,7 +6,7 @@
 #include <QString>
 #include <QPixmap>
 
-struct TIFF_File
+struct PhotoItem
 {
     QString filename;
     int dirIndex;
@@ -23,7 +23,7 @@ public:
 signals:
 public slots:
 private:
-    QList<TIFF_File> photos;
+    QList<PhotoItem> photos;
     bool configModified;
 };
 

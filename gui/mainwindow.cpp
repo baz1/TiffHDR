@@ -16,7 +16,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::startTIFFLoading(QStringList filenames)
 {
-    QList<TIFF_File> tiffFiles = LoadDialog::loadTiffFiles(this, filenames);
+    QList<PhotoItem> tiffFiles = LoadDialog::loadTiffFiles(this, filenames);
     Q_UNUSED(tiffFiles) // TODO
 }
 

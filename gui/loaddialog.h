@@ -19,7 +19,7 @@ public:
     ~LoadDialog();
 public:
     static void setDebugMode(bool isEnabled);
-    static QList<TIFF_File> loadTiffFiles(QWidget *parent = 0, QStringList startList = QStringList());
+    static QList<PhotoItem> loadTiffFiles(QWidget *parent = 0, QStringList startList = QStringList());
 private:
     void addFile(const QString filename);
 private slots:
@@ -30,7 +30,7 @@ private slots:
 private:
     static bool debug;
     Ui::LoadDialog *ui;
-    QList<TIFF_File> files;
+    QList<PhotoItem> files;
     bool isAccepted;
 };
 
