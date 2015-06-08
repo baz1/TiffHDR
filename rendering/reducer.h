@@ -17,6 +17,8 @@ protected:
 signals:
     void renderingStatus(int threadId, int value);
 private:
+    void updateProgress(int &lastP, unsigned int &current, unsigned int &max);
+private:
     int threadId, ratio;
     int taskId;
     QString filename;

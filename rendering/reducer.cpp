@@ -85,11 +85,13 @@ void Reducer::run()
     uint32 lineRAWSize = (nsamples < 3 ? 1 : 3) * PW;
     uint32 *lineRAWData = new uint32[lineRAWSize];
     lineRAWSize <<= 2;
+    int lastP = 0;
     if (config == PLANARCONFIG_CONTIG)
     {
         uint32 tiff_y = 0;
         for (unsigned int y = 0; y < PH; ++y)
         {
+            updateProgress(lastP, y, PH);
             memset(lineRAWData, 0, lineRAWSize);
             uint32 *linePtr;
             for (unsigned int sy = ratio; sy > 0; --sy)
@@ -174,6 +176,7 @@ void Reducer::run()
             uint32 tiff_y = 0;
             for (unsigned int y = 0; y < PH; ++y)
             {
+                updateProgress(lastP, y, PH);
                 memset(lineRAWData, 0, lineRAWSize);
                 uint32 *linePtr;
                 for (unsigned int sy = ratio; sy > 0; --sy)
@@ -210,6 +213,7 @@ void Reducer::run()
             uint32 tiff_y = 0;
             for (unsigned int y = 0; y < PH; ++y)
             {
+                updateProgress(lastP, y, PH);
                 memset(lineRAWData, 0, lineRAWSize);
                 uint32 *linePtr;
                 for (unsigned int sy = ratio; sy > 0; --sy)
@@ -249,4 +253,14 @@ void Reducer::run()
     _TIFFfree(buf);
     TIFFClose(tiffFile);
     result = QPixmap::fromImage(displayImg);
+}
+
+void Reducer::updateProgress(int &lastP, unsigned int &current, unsigned int &max)
+{
+    int newP = (current * 100) / max;
+    if (newP > lastP)
+    {
+        emit renderingStatus(threadId, newP);
+        lastP = newP;
+    }
 }
