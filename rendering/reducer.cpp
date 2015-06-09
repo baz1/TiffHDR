@@ -47,7 +47,63 @@ void Reducer::run()
     }
 }
 
-class RenderInverted
+class RenderO1
+{
+public:
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    {
+        img[y * PW + x] = rgb;
+    }
+
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    {
+        return img[y * PW + x];
+    }
+};
+
+class RenderO2
+{
+public:
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    {
+        img[(y + 1) * PW - x - 1] = rgb;
+    }
+
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    {
+        return img[(y + 1) * PW - x - 1];
+    }
+};
+
+class RenderO3
+{
+public:
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    {
+        img[(PH - y) * PW - x - 1] = rgb;
+    }
+
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    {
+        return img[(PH - y) * PW - x - 1];
+    }
+};
+
+class RenderO4
+{
+public:
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    {
+        img[(PH - y - 1) * PW + x] = rgb;
+    }
+
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    {
+        return img[(PH - y - 1) * PW + x];
+    }
+};
+
+class RenderO5
 {
 public:
     static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
@@ -61,17 +117,45 @@ public:
     }
 };
 
-class RenderNormal
+class RenderO6
 {
 public:
     static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        img[y * PW + x] = rgb;
+        img[(x + 1) * PH - y - 1] = rgb;
     }
 
     static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[y * PW + x];
+        return img[(x + 1) * PH - y - 1];
+    }
+};
+
+class RenderO7
+{
+public:
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    {
+        img[(PW - x) * PH - y - 1] = rgb;
+    }
+
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    {
+        return img[(PW - x) * PH - y - 1];
+    }
+};
+
+class RenderO8
+{
+public:
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    {
+        img[(PW - x - 1) * PH + y] = rgb;
+    }
+
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    {
+        return img[(PW - x - 1) * PH + y];
     }
 };
 
@@ -117,27 +201,36 @@ void Reducer::loadTIFF()
         return;
     }
     bool success;
-    if (orientation & 4)
-        success = renderTIFF<RenderInverted>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
-    else
-        success = renderTIFF<RenderNormal>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+    switch (orientation)
+    {
+    case 0:
+        success = renderTIFF<RenderO1>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        break;
+    case 1:
+        success = renderTIFF<RenderO2>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        break;
+    case 2:
+        success = renderTIFF<RenderO3>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        break;
+    case 3:
+        success = renderTIFF<RenderO4>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        break;
+    case 4:
+        success = renderTIFF<RenderO5>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        break;
+    case 5:
+        success = renderTIFF<RenderO6>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        break;
+    case 6:
+        success = renderTIFF<RenderO7>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        break;
+    case 7:
+        success = renderTIFF<RenderO8>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        break;
+    }
     TIFFClose(tiffFile);
     if (!success)
         return;
-    switch (orientation & 3)
-    {
-    case 0:
-        break;
-    case 1:
-        displayImg = displayImg.mirrored(true, false);
-        break;
-    case 2:
-        displayImg = displayImg.mirrored(true, true);
-        break;
-    case 3:
-        displayImg = displayImg.mirrored(false, true);
-        break;
-    }
     emit renderingStatus(threadId, 100);
     result = QPixmap::fromImage(displayImg);
 }
