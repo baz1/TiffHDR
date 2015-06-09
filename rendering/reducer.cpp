@@ -50,28 +50,28 @@ void Reducer::run()
 class RenderInverted
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PRL)
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        img[x * PRL + y] = rgb;
+        img[x * PH + y] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PRL)
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[x * PRL + y];
+        return img[x * PH + y];
     }
 };
 
 class RenderNormal
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PRL)
+    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        img[y * PRL + x] = rgb;
+        img[y * PW + x] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PRL)
+    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[y * PRL + x];
+        return img[y * PW + x];
     }
 };
 
@@ -105,7 +105,11 @@ void Reducer::loadTIFF()
     if ((orientation < 1) || (orientation > 8))
         orientation = 1;
     --orientation;
-    QImage displayImg = QImage(PW, PH, QImage::Format_RGB32);
+    QImage displayImg;
+    if (orientation & 4)
+        displayImg = QImage(PH, PW, QImage::Format_RGB32);
+    else
+        displayImg = QImage(PW, PH, QImage::Format_RGB32);
     if (displayImg.isNull())
     {
         fprintf(stderr, "Error: Not enough memory.\n");
@@ -114,9 +118,9 @@ void Reducer::loadTIFF()
     }
     bool success;
     if (orientation & 4)
-        success = renderTIFF<RenderInverted>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH, PW);
+        success = renderTIFF<RenderInverted>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
     else
-        success = renderTIFF<RenderNormal>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH, PW);
+        success = renderTIFF<RenderNormal>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
     TIFFClose(tiffFile);
     if (!success)
         return;
