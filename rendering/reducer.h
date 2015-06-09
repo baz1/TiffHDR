@@ -87,14 +87,14 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x] >> 8;
-                            T::setPixel(img, x, y, c | (c << 8) | (c << 16) | (0xffLU << 24), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                         }
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x];
-                            T::setPixel(img, x, y, c | (c << 8) | (c << 16) | (0xffLU << 24), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                         }
                     }
                 } else {
@@ -106,7 +106,7 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                             int r = *(buffer++) >> 8;
                             int g = *(buffer++) >> 8;
                             int b = *(buffer++) >> 8;
-                            T::setPixel(img, x, y, qRgb(r, g, b), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = qRgb(r, g, b);
                         }
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
@@ -115,7 +115,7 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                             int r = *(buffer++);
                             int g = *(buffer++);
                             int b = *(buffer++);
-                            T::setPixel(img, x, y, qRgb(r, g, b), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = qRgb(r, g, b);
                         }
                     }
                 }
@@ -190,13 +190,13 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    T::setPixel(img, x, y, c | (c << 8) | (c << 16) | (0xffLU << 24), PW, PH);
+                    T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                 }
             } else {
                 linePtr = lineRAWData;
                 uint32 div = (1 << (bps - 8)) * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x, linePtr += 3)
-                    T::setPixel(img, x, y, qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div), PW, PH);
+                    T::pixel(img, x, y, PW, PH) = qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div);
             }
         }
     } else {
@@ -215,14 +215,14 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x] >> 8;
-                            T::setPixel(img, x, y, c | (c << 8) | (c << 16) | (0xffLU << 24), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                         }
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
                         {
                             uint32 c = buffer[x];
-                            T::setPixel(img, x, y, c | (c << 8) | (c << 16) | (0xffLU << 24), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                         }
                     }
                 } else {
@@ -231,33 +231,33 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                     {
                         uint16 *buffer = static_cast<uint16*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            T::setPixel(img, x, y, ((((uint32) buffer[x]) & 0xFF00) << 8) | (0xffLU << 24), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = ((((uint32) buffer[x]) & 0xFF00) << 8) | (0xffLU << 24);
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            T::setPixel(img, x, y, (((uint32) buffer[x]) << 16) | (0xffLU << 24), PW, PH);
+                            T::pixel(img, x, y, PW, PH) = (((uint32) buffer[x]) << 16) | (0xffLU << 24);
                     }
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 1);
                     if (bps == 16)
                     {
                         uint16 *buffer = static_cast<uint16*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            T::addToPixel(img, x, y, buffer[x] & 0xFF00, PW, PH);
+                            T::pixel(img, x, y, PW, PH) |= buffer[x] & 0xFF00;
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            T::addToPixel(img, x, y, ((uint32) buffer[x]) << 8, PW, PH);
+                            T::pixel(img, x, y, PW, PH) |= ((uint32) buffer[x]) << 8;
                     }
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 2);
                     if (bps == 16)
                     {
                         uint16 *buffer = static_cast<uint16*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            T::addToPixel(img, x, y, buffer[x] >> 8, PW, PH);
+                            T::pixel(img, x, y, PW, PH) |= buffer[x] >> 8;
                     } else {
                         uint8 *buffer = static_cast<uint8*>(buf);
                         for (unsigned int x = 0; x < PW; ++x)
-                            T::addToPixel(img, x, y, buffer[x], PW, PH);
+                            T::pixel(img, x, y, PW, PH) |= buffer[x];
                     }
                 }
                 continue;
@@ -293,7 +293,7 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    T::setPixel(img, x, y, c | (c << 8) | (c << 16) | (0xffLU << 24), PW, PH);
+                    T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                 }
             } else {
                 for (unsigned int sy = ratio; sy > 0; --sy)
@@ -325,7 +325,7 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                 linePtr = lineRAWData;
                 uint32 div = (1 << (bps - 8)) * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x, linePtr += 3)
-                    T::setPixel(img, x, y, qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div), PW, PH);
+                    T::pixel(img, x, y, PW, PH) = qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div);
             }
         }
     }

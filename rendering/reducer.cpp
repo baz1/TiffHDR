@@ -50,112 +50,72 @@ void Reducer::run()
 class RenderO1
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[y * PW + x] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[y * PW + x] |= rgb;
+        return img[y * PW + x];
     }
 };
 
 class RenderO2
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[(y + 1) * PW - x - 1] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[(y + 1) * PW - x - 1] |= rgb;
+        return img[(y + 1) * PW - x - 1];
     }
 };
 
 class RenderO3
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[(PH - y) * PW - x - 1] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[(PH - y) * PW - x - 1] |= rgb;
+        return img[(PH - y) * PW - x - 1];
     }
 };
 
 class RenderO4
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[(PH - y - 1) * PW + x] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[(PH - y - 1) * PW + x] |= rgb;
+        return img[(PH - y - 1) * PW + x];
     }
 };
 
 class RenderO5
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[x * PH + y] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[x * PH + y] |= rgb;
+        return img[x * PH + y];
     }
 };
 
 class RenderO6
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[(x + 1) * PH - y - 1] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[(x + 1) * PH - y - 1] |= rgb;
+        return img[(x + 1) * PH - y - 1];
     }
 };
 
 class RenderO7
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[(PW - x) * PH - y - 1] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[(PW - x) * PH - y - 1] |= rgb;
+        return img[(PW - x) * PH - y - 1];
     }
 };
 
 class RenderO8
 {
 public:
-    static inline void setPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
+    static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
-        img[(PW - x - 1) * PH + y] = rgb;
-    }
-
-    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
-    {
-        img[(PW - x - 1) * PH + y] |= rgb;
+        return img[(PW - x - 1) * PH + y];
     }
 };
 
