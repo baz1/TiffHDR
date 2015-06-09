@@ -227,6 +227,15 @@ void LoadDialog::on_addTIFF_pressed()
 void LoadDialog::on_validate_pressed()
 {
     Q_ASSERT(files.length() >= 2);
+    int w = files.at(0).width, h = files.at(0).height;
+    for (int i = files.length() - 1; i > 0; --i)
+    {
+        if ((files.at(i).width != w) || (files.at(i).height != h))
+        {
+            QMessageBox::warning(this, tr("Error:"), tr("All the photos do not have the same size."));
+            return;
+        }
+    }
     isAccepted = true;
     close();
 }
