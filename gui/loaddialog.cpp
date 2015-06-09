@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QDir>
 
 #include <stdio.h>
 #include <tiffio.h>
@@ -175,7 +176,8 @@ void LoadDialog::addFile(const QString filename)
         }
         if (photos.length() == 1)
         {
-            files.append(photos.first());
+            if (!tryAppending(photos.first()))
+                return;
             //: Formatting for the list of TIFF files to load; %1 is the filename while %2 is the directory number
             ui->tiffList->addItem(tr("%1 (dir. %2)").arg(filename).arg(photos.first().dirIndex));
             if (files.length() >= 2)
@@ -189,7 +191,8 @@ void LoadDialog::addFile(const QString filename)
         if (!ok)
             return;
         int index = descriptions.indexOf(chosen);
-        files.append(photos.at(index));
+        if (!tryAppending(photos.at(index)))
+            return;
         //: Formatting for the list of TIFF files to load; %1 is the filename while %2 is the directory number
         ui->tiffList->addItem(tr("%1 (dir. %2)").arg(filename).arg(photos.at(index).dirIndex));
         if (files.length() >= 2)
@@ -207,13 +210,28 @@ void LoadDialog::addFile(const QString filename)
         photo.width = img.width();
         photo.height = img.height();
         photo.dirIndex = -1;
-        files.append(photo);
+        if (!tryAppending(photo))
+            return;
         //: Formatting for the list of files to load; %1 is the filename
         ui->tiffList->addItem(tr("%1").arg(filename));
         if (files.length() >= 2)
             ui->validate->setEnabled(true);
         ui->removeTIFF->setEnabled(true);
     }
+}
+
+bool LoadDialog::tryAppending(PhotoItem item)
+{
+    foreach (const PhotoItem &file, files)
+    {
+        if (QDir(file.filename).canonicalPath() == QDir(item.filename).canonicalPath())
+        {
+            QMessageBox::warning(this, tr("Error:"), tr("This photo has already been added to the list."));
+            return false;
+        }
+    }
+    files.append(item);
+    return true;
 }
 
 void LoadDialog::on_addTIFF_pressed()
@@ -227,7 +245,7 @@ void LoadDialog::on_addTIFF_pressed()
 void LoadDialog::on_validate_pressed()
 {
     Q_ASSERT(files.length() >= 2);
-    int w = files.at(0).width, h = files.at(0).height;
+    quint32 w = files.at(0).width, h = files.at(0).height;
     for (int i = files.length() - 1; i > 0; --i)
     {
         if ((files.at(i).width != w) || (files.at(i).height != h))

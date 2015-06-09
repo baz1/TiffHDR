@@ -22,6 +22,7 @@ public:
     static QList<PhotoItem> loadTiffFiles(QWidget *parent = 0, QStringList startList = QStringList());
 private:
     void addFile(const QString filename);
+    bool tryAppending(PhotoItem item);
 private slots:
     void on_addTIFF_pressed();
     void on_validate_pressed();
