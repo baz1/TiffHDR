@@ -52,6 +52,7 @@ class RenderO1
 public:
     static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
+        Q_UNUSED(PH)
         return img[y * PW + x];
     }
 };
@@ -61,6 +62,7 @@ class RenderO2
 public:
     static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
+        Q_UNUSED(PH)
         return img[(y + 1) * PW - x - 1];
     }
 };
@@ -88,6 +90,7 @@ class RenderO5
 public:
     static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
+        Q_UNUSED(PW)
         return img[x * PH + y];
     }
 };
@@ -97,6 +100,7 @@ class RenderO6
 public:
     static inline QRgb &pixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, const unsigned int &PH)
     {
+        Q_UNUSED(PW)
         return img[(x + 1) * PH - y - 1];
     }
 };
@@ -160,7 +164,7 @@ void Reducer::loadTIFF()
         TIFFClose(tiffFile);
         return;
     }
-    bool success;
+    bool success = false;
     switch (orientation)
     {
     case 0:
