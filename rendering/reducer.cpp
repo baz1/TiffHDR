@@ -168,28 +168,28 @@ void Reducer::loadTIFF()
     switch (orientation)
     {
     case 0:
-        success = renderTIFF<RenderO1>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        success = rTIFFCaller<RenderO1>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
         break;
     case 1:
-        success = renderTIFF<RenderO2>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        success = rTIFFCaller<RenderO2>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
         break;
     case 2:
-        success = renderTIFF<RenderO3>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        success = rTIFFCaller<RenderO3>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
         break;
     case 3:
-        success = renderTIFF<RenderO4>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
+        success = rTIFFCaller<RenderO4>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PW, PH);
         break;
     case 4:
-        success = renderTIFF<RenderO5>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        success = rTIFFCaller<RenderO5>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
         break;
     case 5:
-        success = renderTIFF<RenderO6>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        success = rTIFFCaller<RenderO6>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
         break;
     case 6:
-        success = renderTIFF<RenderO7>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        success = rTIFFCaller<RenderO7>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
         break;
     case 7:
-        success = renderTIFF<RenderO8>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
+        success = rTIFFCaller<RenderO8>(reinterpret_cast<QRgb*>(displayImg.bits()), tiffFile, PH, PW);
         break;
     }
     TIFFClose(tiffFile);

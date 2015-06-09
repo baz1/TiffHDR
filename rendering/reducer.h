@@ -19,8 +19,30 @@ signals:
     void renderingStatus(int threadId, int value);
 private:
     void loadTIFF();
-    template <typename T> bool renderTIFF(QRgb *img, TIFF *tiffFile, unsigned int PW, unsigned int PH);
+    template <typename Rendering> bool rTIFFCaller(QRgb *img, TIFF *tiffFile, unsigned int PW, unsigned int PH);
+    template <typename Rendering, typename SamplingT, typename Sampling>
+        bool renderTIFF(QRgb *img, TIFF *tiffFile, unsigned int PW, unsigned int PH);
     void updateProgress(int &lastP, unsigned int &current, unsigned int &max);
+private:
+    class Sample8b
+    {
+    public:
+        static const uint32 div = 1;
+        static inline uint32 get8Bits(uint8 d)
+        {
+            return (uint32) d;
+        }
+    };
+
+    class Sample16b
+    {
+    public:
+        static const uint32 div = 0x100;
+        static inline uint32 get8Bits(uint16 d)
+        {
+            return ((uint32) d) >> 8;
+        }
+    };
 private:
     int threadId, ratio;
     int taskId;
@@ -39,15 +61,26 @@ inline QPixmap Reducer::getPixmap() const
     return result;
 }
 
-template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsigned int PW, unsigned int PH)
+template <typename Rendering> bool Reducer::rTIFFCaller(QRgb *img, TIFF *tiffFile, unsigned int PW, unsigned int PH)
 {
-    uint16 bps, config, nsamples;
+    uint16 bps;
     TIFFGetField(tiffFile, TIFFTAG_BITSPERSAMPLE, &bps);
-    if ((bps != 8) && (bps != 16))
+    if (bps == 16)
     {
+        return renderTIFF<Rendering, uint16, Sample16b>(img, tiffFile, PW, PH);
+    } else if (bps == 8)
+    {
+        return renderTIFF<Rendering, uint8, Sample8b>(img, tiffFile, PW, PH);
+    } else {
         fprintf(stderr, "Error: Unsupported number of bits per sample (%hu) in file \"%s\".\n", bps, qPrintable(filename));
         return false;
     }
+}
+
+template <typename Rendering, typename SamplingT, typename Sampling>
+    bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsigned int PW, unsigned int PH)
+{
+    uint16 config, nsamples;
     TIFFGetField(tiffFile, TIFFTAG_PLANARCONFIG, &config);
     if ((config != PLANARCONFIG_CONTIG) && (config != PLANARCONFIG_SEPARATE))
     {
@@ -79,44 +112,21 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
             if (ratio <= 1)
             {
                 TIFFReadScanline(tiffFile, buf, tiff_y++);
+                SamplingT *buffer = static_cast<SamplingT*>(buf);
                 if (nsamples < 3)
                 {
-                    if (bps == 16)
+                    for (unsigned int x = 0; x < PW; ++x)
                     {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            uint32 c = buffer[x] >> 8;
-                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
-                        }
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            uint32 c = buffer[x];
-                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
-                        }
+                        uint32 c = Sampling::get8Bits(buffer[x]);
+                        Rendering::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                     }
                 } else {
-                    if (bps == 16)
+                    for (unsigned int x = 0; x < PW; ++x)
                     {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            int r = *(buffer++) >> 8;
-                            int g = *(buffer++) >> 8;
-                            int b = *(buffer++) >> 8;
-                            T::pixel(img, x, y, PW, PH) = qRgb(r, g, b);
-                        }
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            int r = *(buffer++);
-                            int g = *(buffer++);
-                            int b = *(buffer++);
-                            T::pixel(img, x, y, PW, PH) = qRgb(r, g, b);
-                        }
+                        int r = Sampling::get8Bits(*(buffer++));
+                        int g = Sampling::get8Bits(*(buffer++));
+                        int b = Sampling::get8Bits(*(buffer++));
+                        Rendering::pixel(img, x, y, PW, PH) = qRgb(r, g, b);
                     }
                 }
                 continue;
@@ -127,76 +137,45 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
             {
                 linePtr = lineRAWData;
                 TIFFReadScanline(tiffFile, buf, tiff_y++);
+                SamplingT *buffer = static_cast<SamplingT*>(buf);
                 if (nsamples < 3)
                 {
-                    if (bps == 16)
+                    for (unsigned int x = 0; x < PW; ++x)
                     {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
+                        for (unsigned int sx = ratio; sx > 0; --sx)
                         {
-                            for (unsigned int sx = ratio; sx > 0; --sx)
-                            {
-                                *linePtr += *buffer;
-                                buffer += nsamples;
-                            }
-                            ++linePtr;
+                            *linePtr += *buffer;
+                            buffer += nsamples;
                         }
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            for (unsigned int sx = ratio; sx > 0; --sx)
-                            {
-                                *linePtr += *buffer;
-                                buffer += nsamples;
-                            }
-                            ++linePtr;
-                        }
+                        ++linePtr;
                     }
                 } else {
-                    if (bps == 16)
+                    for (unsigned int x = 0; x < PW; ++x)
                     {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
+                        for (unsigned int sx = ratio; sx > 0; --sx)
                         {
-                            for (unsigned int sx = ratio; sx > 0; --sx)
-                            {
-                                *linePtr += buffer[0];
-                                *(linePtr + 1) += buffer[1];
-                                *(linePtr + 2) += buffer[2];
-                                buffer += nsamples;
-                            }
-                            linePtr += 3;
+                            *linePtr += buffer[0];
+                            *(linePtr + 1) += buffer[1];
+                            *(linePtr + 2) += buffer[2];
+                            buffer += nsamples;
                         }
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            for (unsigned int sx = ratio; sx > 0; --sx)
-                            {
-                                *linePtr += buffer[0];
-                                *(linePtr + 1) += buffer[1];
-                                *(linePtr + 2) += buffer[2];
-                                buffer += nsamples;
-                            }
-                            linePtr += 3;
-                        }
+                        linePtr += 3;
                     }
                 }
             }
             if (nsamples < 3)
             {
-                uint32 div = (1 << (bps - 8)) * ratio * ratio;
+                uint32 div = Sampling::div * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
+                    Rendering::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                 }
             } else {
                 linePtr = lineRAWData;
-                uint32 div = (1 << (bps - 8)) * ratio * ratio;
+                uint32 div = Sampling::div * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x, linePtr += 3)
-                    T::pixel(img, x, y, PW, PH) = qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div);
+                    Rendering::pixel(img, x, y, PW, PH) = qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div);
             }
         }
     } else {
@@ -209,56 +188,23 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                 if (nsamples < 3)
                 {
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 0);
-                    if (bps == 16)
+                    SamplingT *buffer = static_cast<SamplingT*>(buf);
+                    for (unsigned int x = 0; x < PW; ++x)
                     {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            uint32 c = buffer[x] >> 8;
-                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
-                        }
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            uint32 c = buffer[x];
-                            T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
-                        }
+                        uint32 c = Sampling::get8Bits(buffer[x]);
+                        Rendering::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                     }
                 } else {
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 0);
-                    if (bps == 16)
-                    {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                            T::pixel(img, x, y, PW, PH) = ((((uint32) buffer[x]) & 0xFF00) << 8) | (0xffLU << 24);
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                            T::pixel(img, x, y, PW, PH) = (((uint32) buffer[x]) << 16) | (0xffLU << 24);
-                    }
+                    SamplingT *buffer = static_cast<SamplingT*>(buf);
+                    for (unsigned int x = 0; x < PW; ++x)
+                        Rendering::pixel(img, x, y, PW, PH) = (Sampling::get8Bits(buffer[x]) << 16) | (0xffLU << 24);
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 1);
-                    if (bps == 16)
-                    {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                            T::pixel(img, x, y, PW, PH) |= buffer[x] & 0xFF00;
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                            T::pixel(img, x, y, PW, PH) |= ((uint32) buffer[x]) << 8;
-                    }
+                    for (unsigned int x = 0; x < PW; ++x)
+                        Rendering::pixel(img, x, y, PW, PH) |= Sampling::get8Bits(buffer[x]) << 8;
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 2);
-                    if (bps == 16)
-                    {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                            T::pixel(img, x, y, PW, PH) |= buffer[x] >> 8;
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                            T::pixel(img, x, y, PW, PH) |= buffer[x];
-                    }
+                    for (unsigned int x = 0; x < PW; ++x)
+                        Rendering::pixel(img, x, y, PW, PH) |= Sampling::get8Bits(buffer[x]);
                 }
                 continue;
             }
@@ -270,30 +216,19 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                 {
                     linePtr = lineRAWData;
                     TIFFReadScanline(tiffFile, buf, tiff_y++, 0);
-                    if (bps == 16)
+                    SamplingT *buffer = static_cast<SamplingT*>(buf);
+                    for (unsigned int x = 0; x < PW; ++x)
                     {
-                        uint16 *buffer = static_cast<uint16*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            for (unsigned int sx = ratio; sx > 0; --sx)
-                                *linePtr += *(buffer++);
-                            ++linePtr;
-                        }
-                    } else {
-                        uint8 *buffer = static_cast<uint8*>(buf);
-                        for (unsigned int x = 0; x < PW; ++x)
-                        {
-                            for (unsigned int sx = ratio; sx > 0; --sx)
-                                *linePtr += *(buffer++);
-                            ++linePtr;
-                        }
+                        for (unsigned int sx = ratio; sx > 0; --sx)
+                            *linePtr += *(buffer++);
+                        ++linePtr;
                     }
                 }
-                uint32 div = (1 << (bps - 8)) * ratio * ratio;
+                uint32 div = Sampling::div * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x)
                 {
                     uint32 c = 0xff & (lineRAWData[x] / div);
-                    T::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
+                    Rendering::pixel(img, x, y, PW, PH) = c | (c << 8) | (c << 16) | (0xffLU << 24);
                 }
             } else {
                 for (unsigned int sy = ratio; sy > 0; --sy)
@@ -302,30 +237,19 @@ template <typename T> bool Reducer::renderTIFF(QRgb *img, TIFF *tiffFile, unsign
                     {
                         linePtr = lineRAWData + sample;
                         TIFFReadScanline(tiffFile, buf, tiff_y++, sample);
-                        if (bps == 16)
+                        SamplingT *buffer = static_cast<SamplingT*>(buf);
+                        for (unsigned int x = 0; x < PW; ++x)
                         {
-                            uint16 *buffer = static_cast<uint16*>(buf);
-                            for (unsigned int x = 0; x < PW; ++x)
-                            {
-                                for (unsigned int sx = ratio; sx > 0; --sx)
-                                    *linePtr += *(buffer++);
-                                linePtr += 3;
-                            }
-                        } else {
-                            uint8 *buffer = static_cast<uint8*>(buf);
-                            for (unsigned int x = 0; x < PW; ++x)
-                            {
-                                for (unsigned int sx = ratio; sx > 0; --sx)
-                                    *linePtr += *(buffer++);
-                                linePtr += 3;
-                            }
+                            for (unsigned int sx = ratio; sx > 0; --sx)
+                                *linePtr += *(buffer++);
+                            linePtr += 3;
                         }
                     }
                 }
                 linePtr = lineRAWData;
-                uint32 div = (1 << (bps - 8)) * ratio * ratio;
+                uint32 div = Sampling::div * ratio * ratio;
                 for (unsigned int x = 0; x < PW; ++x, linePtr += 3)
-                    T::pixel(img, x, y, PW, PH) = qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div);
+                    Rendering::pixel(img, x, y, PW, PH) = qRgb(linePtr[0] / div, linePtr[1] / div, linePtr[2] / div);
             }
         }
     }
