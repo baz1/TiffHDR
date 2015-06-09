@@ -55,9 +55,9 @@ public:
         img[y * PW + x] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[y * PW + x];
+        img[y * PW + x] |= rgb;
     }
 };
 
@@ -69,9 +69,9 @@ public:
         img[(y + 1) * PW - x - 1] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[(y + 1) * PW - x - 1];
+        img[(y + 1) * PW - x - 1] |= rgb;
     }
 };
 
@@ -83,9 +83,9 @@ public:
         img[(PH - y) * PW - x - 1] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[(PH - y) * PW - x - 1];
+        img[(PH - y) * PW - x - 1] |= rgb;
     }
 };
 
@@ -97,9 +97,9 @@ public:
         img[(PH - y - 1) * PW + x] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[(PH - y - 1) * PW + x];
+        img[(PH - y - 1) * PW + x] |= rgb;
     }
 };
 
@@ -111,9 +111,9 @@ public:
         img[x * PH + y] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[x * PH + y];
+        img[x * PH + y] |= rgb;
     }
 };
 
@@ -125,9 +125,9 @@ public:
         img[(x + 1) * PH - y - 1] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[(x + 1) * PH - y - 1];
+        img[(x + 1) * PH - y - 1] |= rgb;
     }
 };
 
@@ -139,9 +139,9 @@ public:
         img[(PW - x) * PH - y - 1] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[(PW - x) * PH - y - 1];
+        img[(PW - x) * PH - y - 1] |= rgb;
     }
 };
 
@@ -153,9 +153,9 @@ public:
         img[(PW - x - 1) * PH + y] = rgb;
     }
 
-    static inline QRgb getPixel(QRgb *img, const unsigned int x, const unsigned int y, const unsigned int &PW, , const unsigned int &PH)
+    static inline void addToPixel(QRgb *img, const unsigned int x, const unsigned int y, const QRgb rgb, const unsigned int &PW, , const unsigned int &PH)
     {
-        return img[(PW - x - 1) * PH + y];
+        img[(PW - x - 1) * PH + y] |= rgb;
     }
 };
 
