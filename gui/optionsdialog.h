@@ -15,7 +15,13 @@ public:
     explicit OptionsDialog(QWidget *parent = 0);
     ~OptionsDialog();
 private:
+    void saveChanges();
+private slots:
+    void on_cancelButton_pressed();
+    void on_validate_pressed();
+private:
     Ui::OptionsDialog *ui;
+    bool hasChanges;
 };
 
 #endif // OPTIONSDIALOG_H
