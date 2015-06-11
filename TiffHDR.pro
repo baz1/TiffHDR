@@ -19,15 +19,18 @@ SOURCES += main.cpp\
     rendering/data.cpp \
     gui/loaddialog.cpp \
     util/loadingdialog.cpp \
-    rendering/reducer.cpp
+    rendering/reducer.cpp \
+    gui/optionsdialog.cpp
 
 HEADERS  += gui/mainwindow.h \
     gui/display.h \
     rendering/data.h \
     gui/loaddialog.h \
     util/loadingdialog.h \
-    rendering/reducer.h
+    rendering/reducer.h \
+    gui/optionsdialog.h
 
 FORMS    += gui/mainwindow.ui \
     gui/loaddialog.ui \
-    util/loadingdialog.ui
+    util/loadingdialog.ui \
+    gui/optionsdialog.ui

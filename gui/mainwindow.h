@@ -18,6 +18,8 @@ public:
     void startTIFFLoading(QStringList filenames = QStringList());
 private slots:
     void on_loadTIFF_triggered();
+    void on_actionOptions_triggered();
+
 private:
     Ui::MainWindow *ui;
     bool debug;

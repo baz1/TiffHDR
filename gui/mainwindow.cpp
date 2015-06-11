@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include "loaddialog.h"
+#include "optionsdialog.h"
 
 MainWindow::MainWindow(bool debug, QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow), debug(debug)
 {
@@ -23,4 +24,10 @@ void MainWindow::startTIFFLoading(QStringList filenames)
 void MainWindow::on_loadTIFF_triggered()
 {
     startTIFFLoading();
+}
+
+void MainWindow::on_actionOptions_triggered()
+{
+    OptionsDialog *dlg = new OptionsDialog(this);
+    dlg->show();
 }
