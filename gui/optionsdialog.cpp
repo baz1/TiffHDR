@@ -13,6 +13,11 @@ OptionsDialog::~OptionsDialog()
     delete ui;
 }
 
+void OptionsDialog::saveChanges()
+{
+    // TODO
+}
+
 void OptionsDialog::on_cancelButton_pressed()
 {
     close();

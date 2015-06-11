@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QMessageBox>
 #include "loaddialog.h"
 #include "optionsdialog.h"
 
@@ -30,4 +31,10 @@ void MainWindow::on_actionOptions_triggered()
 {
     OptionsDialog *dlg = new OptionsDialog(this);
     dlg->show();
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox::about(this, tr("About the author"), tr("This software was written by Remi Bazin."));
+    QMessageBox::aboutQt(this);
 }

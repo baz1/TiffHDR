@@ -20,6 +20,8 @@ private slots:
     void on_loadTIFF_triggered();
     void on_actionOptions_triggered();
 
+    void on_actionAbout_triggered();
+
 private:
     Ui::MainWindow *ui;
     bool debug;
