@@ -7,7 +7,7 @@
 
 Reducer::Reducer(int ratio, int threadId, QObject *parent) : QThread(parent), threadId(threadId), ratio(ratio), taskId(-1)
 {
-    Q_ASSERT((ratio <= (1 << 8)) && (ratio >= 1));
+    Q_ASSERT((ratio <= 256) && (ratio >= 1));
 }
 
 void Reducer::setTask(int taskId, QString filename, int dirIndex)

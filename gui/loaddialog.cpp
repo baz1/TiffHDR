@@ -18,6 +18,12 @@ bool LoadDialog::debug;
 LoadDialog::LoadDialog(QWidget *parent) : QDialog(parent), ui(new Ui::LoadDialog), isAccepted(false)
 {
     ui->setupUi(this);
+    {
+        ui->ratioSlider->setMaximum(SETTINGS_MAX_RATIO);
+        int defRatio = Settings::getDefRatio();
+        ui->ratioSlider->setValue(defRatio);
+        ui->ratioLabel->setText(tr("Ratio: 1/%1").arg(defRatio));
+    }
     setModal(true);
 }
 

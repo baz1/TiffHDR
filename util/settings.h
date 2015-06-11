@@ -3,6 +3,8 @@
 
 #include <QSettings>
 
+#define SETTINGS_MAX_RATIO 40
+
 class Settings
 {
 public:
@@ -12,11 +14,16 @@ public:
     static inline void setValue(const QString &key, const QVariant &value);
     static inline QVariant value(const QString &key, const QVariant &defaultValue = QVariant());
 public: /* Application dependant settings: */
+    static int getDefRatio();
+    static void setDefRatio(int value);
+    static bool getDefRatioMem();
+    static void setDefRatioMem(bool value);
+    static void workWithRatio(int value);
     static int getNumberOfThreads();
     static void setNumberOfThreads(int value);
     static int getThreads();
 private:
-    static QSettings *obj = NULL;
+    static QSettings *obj;
 };
 
 inline bool Settings::contains(const QString &key)
@@ -30,7 +37,7 @@ inline void Settings::setValue(const QString &key, const QVariant &value)
         obj->setValue(key, value);
 }
 
-inline QVariant Settings::value(const QString &key, const QVariant &defaultValue = QVariant())
+inline QVariant Settings::value(const QString &key, const QVariant &defaultValue)
 {
     if (!obj)
         return defaultValue;
