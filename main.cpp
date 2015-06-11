@@ -1,4 +1,5 @@
 #include "gui/mainwindow.h"
+#include "util/settings.h"
 #include <QApplication>
 #include <QStringList>
 #include <QFile>
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
         }
     }
     MainWindow w(debug);
+    Settings::init(&w);
     w.show();
     if (!args.isEmpty())
         w.startTIFFLoading(args);

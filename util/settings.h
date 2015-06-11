@@ -11,6 +11,10 @@ public:
     static inline bool contains(const QString &key);
     static inline void setValue(const QString &key, const QVariant &value);
     static inline QVariant value(const QString &key, const QVariant &defaultValue = QVariant());
+public: /* Application dependant settings: */
+    static int getNumberOfThreads();
+    static void setNumberOfThreads(int value);
+    static int getThreads();
 private:
     static QSettings *obj = NULL;
 };
@@ -22,11 +26,14 @@ inline bool Settings::contains(const QString &key)
 
 inline void Settings::setValue(const QString &key, const QVariant &value)
 {
-    obj->setValue(key, value);
+    if (obj)
+        obj->setValue(key, value);
 }
 
 inline QVariant Settings::value(const QString &key, const QVariant &defaultValue = QVariant())
 {
+    if (!obj)
+        return defaultValue;
     return obj->value(key, defaultValue);
 }
 

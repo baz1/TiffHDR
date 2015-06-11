@@ -2,6 +2,7 @@
 #include "ui_loaddialog.h"
 
 #include "../util/loadingdialog.h"
+#include "../util/settings.h"
 #include "../rendering/reducer.h"
 
 #include <QMessageBox>
@@ -45,11 +46,9 @@ QList<PhotoItem> LoadDialog::loadTiffFiles(QWidget *parent, QStringList startLis
     if (!result.isEmpty())
     {
         /* Getting number of threads */
-        int nThreads = QThread::idealThreadCount(); // TODO: in settings
+        int nThreads = Settings::getThreads();
         if (debug)
             fprintf(stderr, "Debug: Trying to render display pixmaps with %d (>= 1) threads.\n", nThreads);
-        if (nThreads < 1)
-            nThreads = 1;
         /* Initialization */
         LoadingDialog ldlg(parent, nThreads);
         ldlg.show();

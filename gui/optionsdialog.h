@@ -15,10 +15,12 @@ public:
     explicit OptionsDialog(QWidget *parent = 0);
     ~OptionsDialog();
 private:
+    void loadSettings();
     void saveChanges();
 private slots:
     void on_cancelButton_pressed();
     void on_validate_pressed();
+    void on_nbThreads_valueChanged(int threads);
 private:
     Ui::OptionsDialog *ui;
     bool hasChanges;
