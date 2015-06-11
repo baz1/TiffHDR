@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     gui/loaddialog.cpp \
     util/loadingdialog.cpp \
     rendering/reducer.cpp \
-    gui/optionsdialog.cpp
+    gui/optionsdialog.cpp \
+    util/settings.cpp
 
 HEADERS  += gui/mainwindow.h \
     gui/display.h \
@@ -28,7 +29,8 @@ HEADERS  += gui/mainwindow.h \
     gui/loaddialog.h \
     util/loadingdialog.h \
     rendering/reducer.h \
-    gui/optionsdialog.h
+    gui/optionsdialog.h \
+    util/settings.h
 
 FORMS    += gui/mainwindow.ui \
     gui/loaddialog.ui \
